@@ -4,7 +4,7 @@ import threading
 from server_handlers import handle_state, handle_score, handle_exit
 
 # All interfaces: 0.0.0.0, localhost only: 127.0.0.1
-HOST = '192.168.64.1'
+HOST = '127.0.0.1'#'192.168.64.1'
 PORT = 12345 
 
 # For each client socket, we store a state dictionary.
