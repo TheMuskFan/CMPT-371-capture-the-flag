@@ -32,13 +32,25 @@ class GameRenderer:
         for player in players:
             x, y = player["pos"]
             color = self.player_colors.get(player["id"], (255, 255, 255))
+
+            # Draw player
             pygame.draw.rect(self.screen, color, (x * self.cell_size, y * self.cell_size,
                                                     self.cell_size, self.cell_size))
+        
+            # Draw flag indicator if player has it
+            if player["has_flag"]:
+                flag_rect = pygame.Rect(
+                    x * self.cell_size + self.cell_size//4,
+                    y * self.cell_size + self.cell_size//4,
+                    self.cell_size//2, self.cell_size//2
+                )
+                pygame.draw.rect(self.screen, self.flag_color, flag_rect)
 
     def draw_flag(self, flag_pos):
         x, y = flag_pos
         pygame.draw.rect(self.screen, self.flag_color,
                          (x * self.cell_size, y * self.cell_size, self.cell_size, self.cell_size))
+        
 
     def draw_bases(self):
         bases = {

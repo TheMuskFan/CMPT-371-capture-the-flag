@@ -39,10 +39,18 @@ class GameState:
             if (0 <= new_x < self.grid_size and 0 <= new_y < self.grid_size and
                 (new_x, new_y) not in self.locked_cells and
                 not self.is_cell_occupied((new_x, new_y), exclude_player_id=player_id)):
+
+                # If player has flag, move flag with them
+                if player.has_flag:
+                    # Remove lock from previous flag position
+                    if self.flag_pos in self.locked_cells:
+                        self.locked_cells.remove(self.flag_pos)
+                    self.flag_pos = (new_x, new_y)
+
                 player.pos = (new_x, new_y)
 
                 # Capture flag if stepping on its cell.
-                if (new_x, new_y) == self.flag_pos and not player.has_flag:
+                if (new_x, new_y) == self.flag_pos and not any(p.has_flag for p in self.players.values()):
                     player.has_flag = True
                     self.locked_cells.add((new_x, new_y))
 
@@ -50,6 +58,7 @@ class GameState:
                 if player.has_flag and (new_x, new_y) == self.bases[player_id]:
                     player.score += 1
                     player.has_flag = False
+                    self.flag_pos = (self.grid_size // 2, self.grid_size // 2)  # Reset flag to center
                     self.locked_cells.clear()
 
     def get_state(self):
