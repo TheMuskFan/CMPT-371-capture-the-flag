@@ -1,4 +1,5 @@
 import threading
+import random
 from player import Player
 
 class GameState:
@@ -19,6 +20,18 @@ class GameState:
         }
         self.locked_cells = set()
         self.state_lock = threading.Lock()
+        self.flag_pos = self.generate_random_flag_position()
+    
+    def generate_random_flag_position(self):
+        while True:
+            x = random.randint(0, self.grid_size - 1)
+            y = random.randint(0, self.grid_size - 1)
+            pos = (x, y)
+            
+            # Check if position is not a base and not occupied by a player
+            if (pos not in self.bases.values() and 
+                not self.is_cell_occupied(pos)):
+                return pos
 
     def is_cell_occupied(self, pos, exclude_player_id=None):
         for pid, player in self.players.items():
@@ -58,7 +71,7 @@ class GameState:
                 if player.has_flag and (new_x, new_y) == self.bases[player_id]:
                     player.score += 1
                     player.has_flag = False
-                    self.flag_pos = (self.grid_size // 2, self.grid_size // 2)  # Reset flag to center
+                    self.flag_pos = self.generate_random_flag_position()  # Flag respawns randomly
                     self.locked_cells.clear()
 
     def get_state(self):
