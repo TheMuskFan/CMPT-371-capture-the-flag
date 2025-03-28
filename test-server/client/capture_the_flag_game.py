@@ -4,18 +4,19 @@ from network_client import NetworkClient
 from game_renderer import GameRenderer
 
 class CaptureTheFlagGame:
-    def __init__(self):
-        self.network_client = NetworkClient()
+    def __init__(self,network_client,player_id):
+        # self.network_client = NetworkClient()
+        self.network_client = network_client
         self.renderer = GameRenderer()
         self.running = True
-        self.player_id = None
+        self.player_id = player_id
 
-    def choose_player(self):
-        while self.player_id not in [1, 2, 3, 4]:
-            try:
-                self.player_id = int(input("Enter your player ID (1-4): "))
-            except ValueError:
-                continue
+    # def choose_player(self):
+    #     while self.player_id not in [1, 2, 3, 4]:
+    #         try:
+    #             self.player_id = int(input("Enter your player ID (1-4): "))
+    #         except ValueError:
+    #             continue
 
     def process_events(self):
         for event in pygame.event.get():
@@ -35,8 +36,9 @@ class CaptureTheFlagGame:
                     self.network_client.send_input(self.player_id, dx, dy)
 
     def run(self):
-        self.choose_player()
-        self.network_client.start_listener()
+        # now handled by lobby
+        # self.choose_player() 
+        # self.network_client.start_listener()
 
         while self.running:
             self.process_events()

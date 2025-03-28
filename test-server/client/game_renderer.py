@@ -8,10 +8,10 @@ class GameRenderer:
         self.screen_width = grid_size * cell_size
         self.screen_height = grid_size * cell_size
         self.player_colors = player_colors or {
-            1: (255, 0, 0),
-            2: (0, 0, 255),
-            3: (255, 255, 0),
-            4: (0, 255, 255)
+            0: (255, 0, 0),
+            1: (0, 0, 255),
+            2: (255, 255, 0),
+            3: (0, 255, 255)
         }
         self.flag_color = flag_color
         self.base_color = base_color
