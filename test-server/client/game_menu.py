@@ -1,8 +1,8 @@
 import pygame
 import pygame_menu
+import sys
 from network_client import NetworkClient
 from lobby import Lobby
-import sys
 from enum import Enum, auto
 from capture_the_flag_game import CaptureTheFlagGame
 
@@ -81,6 +81,7 @@ class GameMenu:
         
         try:
             self.network_client = NetworkClient(host,port)
+            self.network_client.initialized = True
             self.network_client.start_listener()
             self.state = AppState.LOBBY
             self.connection_in_progress = True

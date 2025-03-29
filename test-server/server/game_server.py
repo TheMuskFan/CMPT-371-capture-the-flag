@@ -8,6 +8,7 @@ class GameServer:
     def __init__(self, host='127.0.0.1', port=12345, grid_size=15):
         self.host = host
         self.port = port
+        self.grid_size = grid_size
         self.game_state = GameState(grid_size)
         self.clients = []
         self.clients_lock = threading.Lock()
@@ -36,6 +37,8 @@ class GameServer:
         with self.lock:
             if all(self.lobby_state["ready_states"]):
                 self.broadcast_game_start()
+                self.game_state = GameState(self.grid_size)
+                
                 
     def broadcast_game_start(self):
         start_msg = json.dumps({"type": "game_start"}) + "\n"
@@ -44,7 +47,7 @@ class GameServer:
                 try:
                     socket.sendall(start_msg.encode())
                 except Exception as e:
-                    print(f"Failed to send start to player {i}: {e}")
+                    print(f"Failed to send start to player {i + 1}: {e}")
                     self.cleanup_player(i)
 
     def broadcast_game_state(self):
@@ -57,10 +60,10 @@ class GameServer:
             if socket:
                 try:
                     # debug messages
-                    # print(f"Sending game state to player {i}")
+                    # print(f"Sending game state to player {i + 1}")
                     socket.sendall(message)
                 except Exception as e:
-                    print(f"Failed to send game state to player {i}: {e}")  # Detailed error
+                    print(f"Failed to send game state to player {i + 1}: {e}")
                     pass
                     
     def broadcast_lobby_state(self):
@@ -77,11 +80,10 @@ class GameServer:
         for i, socket in enumerate(self.lobby_state["sockets"]):
             if socket:
                 try:
-                    print(f"Sending lobby state to player {i}")
+                    print(f"Sending lobby state to player {i + 1}")
                     socket.sendall(encoded)
-                    # print(f"Successfully sent to player {i}")
                 except Exception as e:
-                    print(f"Failed to send to player {i}: {e}")  # Detailed error
+                    print(f"Failed to send to player {i + 1}: {e}") 
                     pass
         
     
@@ -129,7 +131,8 @@ class GameServer:
                     message_type = message.get("type")
                     
                     handler = self.message_handlers.get(message_type)
-                    print(message)
+                    # debug
+                    # print(message)
                     if handler:
                         
                         handler(message)
@@ -148,7 +151,7 @@ class GameServer:
         init_msg = {
             "type": "lobby_init",
             "your_id": player_id,
-            "is_host": (player_id == 0), # first player is host
+            "is_host": (player_id == 0), # todo: host logic
             "players": self.lobby_state['players'],
             "ready_states": self.lobby_state['ready_states'],
             "can_start": self.check_can_start()

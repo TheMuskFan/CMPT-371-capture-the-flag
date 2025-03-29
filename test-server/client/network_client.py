@@ -157,5 +157,3 @@ class NetworkClient:
             except:
                 pass
             self.client_socket.close()
-        # if self.client_socket is not None:
-        #     self.client_socket.close()
