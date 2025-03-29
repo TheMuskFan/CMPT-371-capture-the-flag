@@ -6,6 +6,7 @@ from lobby import Lobby
 if __name__ == "__main__":
     menu = GameMenu()
     menu.run()
-    # network_client = NetworkClient()
+
+    # Game is runnable by itself (with server)
     # game = CaptureTheFlagGame()
     # game.run()

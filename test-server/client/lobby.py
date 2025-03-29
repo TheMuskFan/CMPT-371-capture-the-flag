@@ -33,6 +33,7 @@ class Lobby:
         )
         
         self.player_widgets = []
+        self.player_labels = []
         for i in range(4):
             frame = self.menu.add.frame_v(
                 width = 300,
@@ -66,6 +67,7 @@ class Lobby:
             frame.pack(row)
             
             self.player_widgets.append((frame, status))
+            self.player_labels.append(player_label)
             self.menu.add.vertical_margin(10)
             
         self.ready_button = self.menu.add.button(
@@ -89,12 +91,17 @@ class Lobby:
     def update_ui(self):
         # print("Updating UI...")
         lobby_state = self.network_client.lobby_state
+        current_player_id = lobby_state["player_id"]
         
         for i in range(4):
             frame,status = self.player_widgets[i]
             player = lobby_state["players"][i]
             is_ready = lobby_state["ready_states"][i]
             
+            # label_text = f"Player {i+1}:"
+            if i == current_player_id and player is not None:
+                label_text = f"Player {i+1}: (YOU)"
+                self.player_labels[i].set_title(label_text)
             
             if player is None:
                 status.set_title("Empty")
@@ -107,18 +114,10 @@ class Lobby:
                 frame.set_background_color(new_frame_color)
                 
                 status.update_font({'color': (0, 255, 0) if is_ready else (255, 0, 0)}) 
-                
-                
-        if (player_id := lobby_state.get("player_id")) is not None:
-            is_ready = lobby_state["ready_states"][player_id]
-            self.ready_button.set_title("Ready") if is_ready else "Not Ready"
-            self.ready_button.update_font({
-                'color': (255, 0, 0) if is_ready else (0, 255, 0)
-            })
             
         if lobby_state["can_start"]:
             self.start_button.show()
-            self.start_button.set_background_color((0,200,0))
+            self.start_button.set_background_color((0,200,200))
         else:
             self.start_button.hide()
     
