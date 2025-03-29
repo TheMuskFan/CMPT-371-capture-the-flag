@@ -87,16 +87,29 @@ def move_player(player, dx, dy):
     ):
         player["pos"] = (new_x, new_y)
 
+         # Check if player stole flag from another player
+        if not player["has_flag"]:
+            for other_player in players:
+                if other_player["id"] != player["id"] and other_player["has_flag"]:
+                    ox, oy = other_player["pos"]
+                    px, py = player["pos"]
+                    if abs(px - ox) + abs(py - oy) == 1:    # Check if adjacent
+                        other_player["has_flag"] = False
+                        player["has_flag"] = True
+                        print(f"Player {player['id']} stole the flag from Player {other_player['id']}")
+                        break
+                    
         # Check if the player captures the flag
         if (new_x, new_y) == flag_pos and not player["has_flag"]:
             player["has_flag"] = True
             locked_cells.add((new_x, new_y))  # Lock the flag cell
-
+        
         # Check if the player returns the flag to their base
         if player["has_flag"] and (new_x, new_y) == bases[player["id"]]:
             player["score"] += 1
             player["has_flag"] = False
             locked_cells.clear()  # Unlock all cells
+
 
 def main_game_loop():
     while True:
