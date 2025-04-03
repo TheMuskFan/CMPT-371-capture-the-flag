@@ -62,6 +62,17 @@ class GameState:
 
                 player.pos = (new_x, new_y)
 
+                # Check if player stole flag from another player
+                if not player.has_flag:
+                    for other_id, other_player in self.players.items():
+                        if other_id != player_id and other_player.has_flag:
+                            ox, oy = other_player.pos
+                            px, py = player.pos
+                            if abs(px - ox) + abs(py - oy) == 1:  # Check if adjacent
+                                other_player.has_flag = False
+                                player.has_flag = True
+                                break
+
                 # Capture flag if stepping on its cell.
                 if (new_x, new_y) == self.flag_pos and not any(p.has_flag for p in self.players.values()):
                     player.has_flag = True
