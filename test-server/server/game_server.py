@@ -31,13 +31,22 @@ class GameServer:
         }
         
     def check_can_start(self):
-        return (all(self.lobby_state["ready_states"]))
+        players = self.lobby_state['players']
+        ready = self.lobby_state['ready_states']
+        ready_count = sum(
+            1 for p, r in zip(players, ready) if p is not None and r
+        )
+        return ready_count >= 2
     
     def handle_start_request(self, message):
         with self.lock:
-            if all(self.lobby_state["ready_states"]):
+            if self.check_can_start():
+                connected_ready_ids = [
+                    i + 1 for i, (p, r) in enumerate(zip(self.lobby_state['players'], self.lobby_state['ready_states']))
+                    if p is not None and r
+                ]
                 self.broadcast_game_start()
-                self.game_state = GameState(self.grid_size)
+                self.game_state = GameState(self.grid_size, connected_ready_ids)
                 
                 
     def broadcast_game_start(self):
@@ -71,7 +80,7 @@ class GameServer:
             'type': 'lobby_update',
             'players': self.lobby_state['players'],
             'ready_states': self.lobby_state['ready_states'],
-            'can_start': all(self.lobby_state['ready_states'])
+            'can_start':  self.check_can_start()
         }
         print(f"\nPreparing to broadcast: {state}")  # Debug print
         

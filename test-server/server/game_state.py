@@ -3,14 +3,25 @@ import random
 from player import Player
 
 class GameState:
-    def __init__(self, grid_size=15):
+    def __init__(self, grid_size=15, connected_players_ids = None):
         self.grid_size = grid_size
-        self.players = {
-            1: Player(1, (0, 0), (255, 0, 0)),
-            2: Player(2, (grid_size - 1, 0), (0, 0, 255)),
-            3: Player(3, (0, grid_size - 1), (255, 255, 0)),
-            4: Player(4, (grid_size - 1, grid_size - 1), (0, 255, 255)),
-        }
+        self.players = {}
+        if connected_players_ids is None:
+            connected_players_ids = []
+        for pid in connected_players_ids:
+            if pid == 1:
+                start_pos = (0, 0)
+                color = (255, 0, 0)  
+            elif pid == 2:
+                start_pos = (grid_size - 1, 0)
+                color = (0, 0, 255)
+            elif pid == 3:
+                start_pos = (0, grid_size - 1)
+                color = (255, 255, 0)
+            elif pid == 4:
+                start_pos = (grid_size - 1, grid_size - 1)
+                color = (0, 255, 255)
+            self.players[pid] = Player(pid, start_pos, color)
         self.flag_pos = (grid_size // 2, grid_size // 2)
         self.bases = {
             1: (0, 0),

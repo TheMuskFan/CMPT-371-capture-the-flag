@@ -66,7 +66,8 @@ class GameRenderer:
 
     def draw_scores(self, players):
         font = pygame.font.Font(None, 36)
-        for i, player in enumerate(players):
+        sorted_players = sorted(players, key=lambda p: p["score"], reverse=True)
+        for i, player in enumerate(sorted_players):
             text = font.render(f"Player {player['id']}: {player['score']}", True,
                                self.player_colors.get(player["id"], (255, 255, 255)))
             self.screen.blit(text, (10, 10 + i * 40))
