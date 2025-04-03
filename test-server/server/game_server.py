@@ -5,7 +5,7 @@ import pygame  # Used for the clock in the game loop
 from game_state import GameState
 
 class GameServer:
-    def __init__(self, host='127.0.0.1', port=12345, grid_size=15):
+    def __init__(self, host, port, grid_size=15):
         self.host = host
         self.port = port
         self.grid_size = grid_size
