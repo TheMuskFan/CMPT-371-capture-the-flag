@@ -1,4 +1,4 @@
-# CMPT-371-Project
+# CMPT-371-capture-the-flag
 
 This project was developed as part of CMPT 371: Data Communications and Networking (Spring 2025) at Simon Fraser University.
 
