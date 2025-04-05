@@ -1,7 +1,7 @@
 import pygame
 import pygame_menu
 import sys
-from game.client.game_client import GameClient
+from game_client import GameClient
 from lobby import Lobby
 from enum import Enum, auto
 from capture_the_flag_game import CaptureTheFlagGame

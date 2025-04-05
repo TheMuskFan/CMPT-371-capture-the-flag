@@ -1,6 +1,6 @@
 import pygame
 import sys
-from game.client.game_client import GameClient
+from game_client import GameClient
 from game_renderer import GameRenderer
 
 class CaptureTheFlagGame:

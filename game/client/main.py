@@ -1,5 +1,5 @@
 from capture_the_flag_game import CaptureTheFlagGame
-from network_client import NetworkClient
+from game_client import GameClient
 from game_menu import GameMenu
 from lobby import Lobby
 
