@@ -5,6 +5,7 @@ import pygame  # Used for the clock in the game loop
 from game_state import GameState
 
 class GameServer:
+    # Initializes the server with network settings, lobby state, and sets up message handlers.
     def __init__(self, host, port, grid_size=15):
         self.host = host
         self.port = port
@@ -24,12 +25,12 @@ class GameServer:
         
         self.message_handlers = {
             'input': self.handle_input,
-            
             'ready': self.handle_ready_toggle,
             'start_request': self.handle_start_request,
             'disconnect': self.handle_disconnect_message
         }
-        
+    
+    # Returns True if at least two players are ready — used to validate game start conditions.
     def check_can_start(self):
         players = self.lobby_state['players']
         ready = self.lobby_state['ready_states']
@@ -38,6 +39,8 @@ class GameServer:
         )
         return ready_count >= 2
     
+    # If enough players are ready, initializes a new game state 
+    # and sends a start signal to all ready players.
     def handle_start_request(self, message):
         with self.lock:
             if self.check_can_start():
@@ -48,7 +51,7 @@ class GameServer:
                 self.broadcast_game_start()
                 self.game_state = GameState(self.grid_size, connected_ready_ids)
                 
-                
+    # Sends a game_start message to all players in the lobby.
     def broadcast_game_start(self):
         start_msg = json.dumps({"type": "game_start"}) + "\n"
         for i, socket in enumerate(self.lobby_state["sockets"]):
@@ -59,6 +62,7 @@ class GameServer:
                     print(f"Failed to send start to player {i + 1}: {e}")
                     self.cleanup_player(i)
 
+    # Continuously sends the current game state to all clients — used in the game loop.
     def broadcast_game_state(self):
         state = {"type": "update"}
         state.update(self.game_state.get_state())
@@ -68,13 +72,12 @@ class GameServer:
         for i, socket in enumerate(self.lobby_state["sockets"]):
             if socket:
                 try:
-                    # debug messages
-                    # print(f"Sending game state to player {i + 1}")
                     socket.sendall(message)
                 except Exception as e:
                     print(f"Failed to send game state to player {i + 1}: {e}")
                     pass
-                    
+    
+    # Sends the current lobby info (players, ready states, etc.) to all connected players.
     def broadcast_lobby_state(self):
         state = {
             'type': 'lobby_update',
@@ -95,9 +98,9 @@ class GameServer:
                     print(f"Failed to send to player {i + 1}: {e}") 
                     pass
         
-    
+    # Assigns a player to a lobby slot if available, initializes their data, and notifies all clients.
     # returns assigned player id or -1 if if failed
-    def initialize_lobby(self,client_socket,address) -> int:
+    def initialize_lobby(self, client_socket, address) -> int:
         for i in range(4):
             if self.lobby_state['players'][i] is None:
                 self.lobby_state['players'][i] = f"Player_{i+1}"
@@ -115,8 +118,9 @@ class GameServer:
             
         return -1
         
-                    
-    def handle_client(self,client_socket,address):
+    # Handles individual client connection: processes incoming messages and dispatches them to handlers.
+    # Each client has its own thread handled by the server.
+    def handle_client(self, client_socket, address):
         print(f"Client {address} connected.")
         player_id = -1
         try:
@@ -140,10 +144,7 @@ class GameServer:
                     message_type = message.get("type")
                     
                     handler = self.message_handlers.get(message_type)
-                    # debug
-                    # print(message)
                     if handler:
-                        
                         handler(message)
                     else:
                         # shouldn't hit error when using gui
@@ -154,8 +155,10 @@ class GameServer:
             print(f"Client {address} disconnected abruptly")
         finally:
             self.handle_network_disconnect(player_id)
-                        
-    def send_lobby_init(self,socket,player_id):
+    
+    # Sends initial lobby info to a new player, including their ID, 
+    # current lobby state, and whether they're the host.
+    def send_lobby_init(self, socket, player_id):
         print(f"Broadcasting lobby state to all players")
         init_msg = {
             "type": "lobby_init",
@@ -167,8 +170,9 @@ class GameServer:
         }
         if self.lobby_state['sockets'][player_id] is not None:
             socket.sendall(json.dumps(init_msg).encode() + b'\n')
-            
-    def handle_ready_toggle(self,message):
+    
+    # Toggles a player’s ready status and broadcasts the updated lobby state.
+    def handle_ready_toggle(self, message):
         player_id = message.get("player_id")
         with self.lock:
             current_ready_state = self.lobby_state["ready_states"][player_id]
@@ -180,24 +184,27 @@ class GameServer:
             if all(self.lobby_state["ready_states"]):
                 # maybe start
                 pass
-            
-    def handle_input(self,message):
+    
+    # Processes movement input from a player and updates their position in the game state.
+    def handle_input(self, message):
         lobby_id = message.get("player_id")
         game_state_id = lobby_id + 1  # Convert to 1-4 for GameState
         move = message.get("move", {})
         dx = move.get("dx", 0)
         dy = move.get("dy", 0)
         self.game_state.move_player(game_state_id, dx, dy)
-        
-    # for abrupt disconnects
+    
+    # Called when a player disconnects abruptly (e.g., connection error); cleans up their lobby slot.
     def handle_network_disconnect(self, player_id: int):
         self.cleanup_player(player_id)
-        
-    def handle_disconnect_message(self,message):
+    
+    # Handles an intentional disconnect message from a player.
+    def handle_disconnect_message(self, message):
         player_id = message.get('player_id')
         if player_id is not None:
             self.cleanup_player(player_id)
-            
+    
+    # Clears all player data (name, socket, etc.) from the lobby and broadcasts the update.
     def cleanup_player(self, player_id):
         with self.lock:
             address = self.lobby_state['addresses'][player_id]
@@ -221,12 +228,14 @@ class GameServer:
                     client_socket.close()
                 self.broadcast_lobby_state()
 
+    # Runs in a separate thread, repeatedly broadcasts the game state at 30 FPS.
     def game_loop(self):
         clock = pygame.time.Clock()
         while True:
             self.broadcast_game_state()
             clock.tick(30)  # 30 updates per second
 
+    # Starts the server socket, listens for clients, and spawns threads for each connection.
     def start(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
