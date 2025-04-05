@@ -1,6 +1,9 @@
 import pygame
 
 class GameRenderer:
+    # Sets grid and screen dimensions
+    # Defines player colors, flag color, base color
+    # Creates the Pygame display window and clock for frame timing
     def __init__(self, grid_size=15, cell_size=50,
                  player_colors=None, flag_color=(0, 255, 0), base_color=(100, 100, 100)):
         self.grid_size = grid_size
@@ -21,6 +24,7 @@ class GameRenderer:
         pygame.display.set_caption("Capture the Flag Client")
         self.clock = pygame.time.Clock()
 
+    # Draws a light gray grid on the screen, dividing it into cells for easier position visualization.
     def draw_grid(self):
         for x in range(self.grid_size):
             for y in range(self.grid_size):
@@ -28,6 +32,8 @@ class GameRenderer:
                                    self.cell_size, self.cell_size)
                 pygame.draw.rect(self.screen, (200, 200, 200), rect, 1)
 
+    # Renders each player on the grid using their ID color.
+    # If a player is carrying the flag, a smaller flag-colored square is drawn inside their cell.
     def draw_players(self, players):
         for player in players:
             x, y = player["pos"]
@@ -46,12 +52,13 @@ class GameRenderer:
                 )
                 pygame.draw.rect(self.screen, self.flag_color, flag_rect)
 
+    # Draws the standalone flag on the grid if it’s not currently being carried.
     def draw_flag(self, flag_pos):
         x, y = flag_pos
         pygame.draw.rect(self.screen, self.flag_color,
                          (x * self.cell_size, y * self.cell_size, self.cell_size, self.cell_size))
         
-
+    # Draws the bases in each corner of the grid.
     def draw_bases(self):
         bases = {
             1: (0, 0),
@@ -64,6 +71,7 @@ class GameRenderer:
             pygame.draw.rect(self.screen, self.base_color,
                              (x * self.cell_size, y * self.cell_size, self.cell_size, self.cell_size))
 
+    # Displays the current scores for all players on the top-left corner of the screen, sorted from highest to lowest.
     def draw_scores(self, players):
         font = pygame.font.Font(None, 36)
         sorted_players = sorted(players, key=lambda p: p["score"], reverse=True)
@@ -72,6 +80,11 @@ class GameRenderer:
                                self.player_colors.get(player["id"], (255, 255, 255)))
             self.screen.blit(text, (10, 10 + i * 40))
 
+    # Main rendering method:
+    # - Clears the screen
+    # - Draws grid, bases, and flag (only if not carried)
+    # - Draws players and their scores
+    # - Updates the display and caps frame rate at 30 FPS
     def render(self, players, flag_pos):
         self.screen.fill((0, 0, 0))
         self.draw_grid()
