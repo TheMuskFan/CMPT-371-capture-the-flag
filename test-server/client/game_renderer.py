@@ -76,7 +76,8 @@ class GameRenderer:
         self.screen.fill((0, 0, 0))
         self.draw_grid()
         self.draw_bases()
-        self.draw_flag(flag_pos)
+        if not any(p["has_flag"] for p in players):
+            self.draw_flag(flag_pos)
         self.draw_players(players)
         self.draw_scores(players)
         pygame.display.flip()
