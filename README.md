@@ -27,14 +27,12 @@ pip install -r requirements.txt
 
 ### Start the Server
 ```bash
-cd test-server/server
-python main.py
+python game/server/main.py
 ```
 
 ### Start the Client
 ```bash
-cd test-server/client
-python main.py
+python game/client/main.py
 ```
 
 ### Select IP address and Port 
