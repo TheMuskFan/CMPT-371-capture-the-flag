@@ -3,13 +3,19 @@ import pygame
 import pygame_menu
 from enum import Enum,auto
 
-
+# Represents the current state of the lobby screen:
+# - WAITING: Still in the lobby.
+# - START_GAME: Ready to transition into the game.
+# - EXIT: Player wants to leave the lobby and return to main menu.
 class LobbyState(Enum):
     WAITING = auto()    # Still in lobby
     START_GAME = auto() # Transition to game
     EXIT = auto()  # Return to main menu
 
 class Lobby:
+
+    # Sets up the Pygame lobby UI, initializes player state tracking, and builds a menu interface with:
+    # Player info frames: "Ready", "Start Game", and "Leave Lobby" buttons
     def __init__(self,network_client,screen_width = 750, screen_height = 750):
         pygame.init()
         
@@ -87,9 +93,10 @@ class Lobby:
             self.leave_lobby,
             font_size=25
         )
-        
+    
+    # Syncs the displayed lobby UI with the latest state from the server:
+    # Updates player names, ready states, colors, and button visibility (like Start Game)
     def update_ui(self):
-        # print("Updating UI...")
         lobby_state = self.network_client.lobby_state
         current_player_id = lobby_state["player_id"]
         
@@ -121,19 +128,23 @@ class Lobby:
         else:
             self.start_button.hide()
     
+    # Toggles the current player's "ready" status and sends an update to the server.
     def toggle_ready(self):
         print(f"Ready button clicked.")
         self.is_ready = not self.is_ready
         self.network_client.send_toggle_ready()
-   
+
+    # Sends a request to the server to start the game.
+    # Only visible if the client is the host and conditions are met.
     def start_game(self):
         self.network_client.send_start_request()
-        
+    
+    # Changes the local lobby state to EXIT and notifies the server of disconnection.
     def leave_lobby(self):
         self.lobby_state = LobbyState.EXIT
         self.network_client.send_disconnect()
         
-    # Returns where to go next
+    # Returns what the next screen should be ("game" or "menu"), based on the current lobby state.
     def get_next_state(self):
         if self.lobby_state == LobbyState.START_GAME:
             return "game"
@@ -143,7 +154,10 @@ class Lobby:
             return "menu"
         
         return self.lobby_state
-        
+    
+    # Main loop for the lobby screen:
+    # Continuously checks events, updates UI, and handles game start trigger.
+    # Runs at 30 FPS until the state changes from WAITING.
     def run(self):
         clock = pygame.time.Clock()
         
