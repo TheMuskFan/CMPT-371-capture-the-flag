@@ -19,6 +19,8 @@ It is a multiplayer Capture the Flag game implemented in Python, showcasing real
 Before running the server or client, make sure to install the required dependencies:
 
 ```bash
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 ## How to Run
