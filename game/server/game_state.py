@@ -108,8 +108,8 @@ class GameState:
                     self.flag_pos = self.generate_random_flag_position()  # Flag respawns randomly
                     self.locked_cells.clear()
 
-    # Returns a dictionary representing the current game state: 
-    # player positions, flag location, and locked cells. Used for broadcasting to clients.
+    # Returns a dictionary representing the current game state: player positions, flag location, and locked cells. 
+    # Used for broadcasting to clients.
     def get_state(self):
         with self.state_lock:
             return {
@@ -117,3 +117,9 @@ class GameState:
                 "flag": self.flag_pos,
                 "locked_cells": list(self.locked_cells),
             }
+    
+    # Remove player from the game when disconnected.
+    def remove_player(self, game_state_id):
+        with self.state_lock:
+            if game_state_id in self.players:
+                del self.players[game_state_id]

@@ -220,12 +220,15 @@ class GameServer:
                 self.lobby_state['addresses'][player_id] = None
                 self.player_count -= 1
                             
+                self.game_state.remove_player(player_id + 1)
+
                 print(f"Player {player_id} has left the game")
             except (ConnectionResetError):
                 print(f"Client {address} disconnected abruptly")
             finally:
                 if client_socket is not None:
                     client_socket.close()
+                self.broadcast_game_state()
                 self.broadcast_lobby_state()
 
     # Runs in a separate thread, repeatedly broadcasts the game state at 30 FPS.
