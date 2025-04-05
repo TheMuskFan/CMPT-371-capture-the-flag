@@ -1,6 +1,6 @@
 import pygame
 import sys
-from network_client import NetworkClient
+from game.client.game_client import GameClient
 from game_renderer import GameRenderer
 
 class CaptureTheFlagGame:
@@ -9,8 +9,8 @@ class CaptureTheFlagGame:
     # - Creates a GameRenderer for visuals
     # - Sets the game loop to running
     # - Stores the player's ID
-    def __init__(self,network_client = None,player_id = None):
-        self.network_client = network_client or NetworkClient()
+    def __init__(self, game_client = None, player_id = None):
+        self.game_client = game_client or GameClient()
         self.renderer = GameRenderer()
         self.running = True
         self.player_id = player_id
@@ -44,7 +44,7 @@ class CaptureTheFlagGame:
                 elif event.key == pygame.K_d:
                     dx = 1
                 if dx != 0 or dy != 0:
-                    self.network_client.send_input(self.player_id, dx, dy)
+                    self.game_client.send_input(self.player_id, dx, dy)
 
     # Main game loop:
     # Ensures player ID is set
@@ -55,12 +55,12 @@ class CaptureTheFlagGame:
     # - Renders players and flag with GameRenderer
     def run(self):
         self.choose_player() 
-        if not self.network_client.listening:
-            self.network_client.start_listener()
+        if not self.game_client.listening:
+            self.game_client.start_listener()
 
         while self.running:
             self.process_events()
-            state = self.network_client.get_state()
+            state = self.game_client.get_state()
             players = state.get("players", [])
             flag_pos = state.get("flag", (self.renderer.grid_size // 2, self.renderer.grid_size // 2))
             self.renderer.render(players, flag_pos)
@@ -73,5 +73,5 @@ class CaptureTheFlagGame:
     # - Exits the program
     def cleanup(self):
         pygame.quit()
-        self.network_client.close()
+        self.game_client.close()
         sys.exit()

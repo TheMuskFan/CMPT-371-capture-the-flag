@@ -1,7 +1,7 @@
 import pygame
 import pygame_menu
 import sys
-from network_client import NetworkClient
+from game.client.game_client import GameClient
 from lobby import Lobby
 from enum import Enum, auto
 from capture_the_flag_game import CaptureTheFlagGame
@@ -27,7 +27,7 @@ class GameMenu:
         pygame.display.set_caption("Capture the Flag")
         
         self.state = AppState.MENU
-        self.network_client = None
+        self.game_client = None
         self.error_message = ""
         self.connection_in_progress = False
         
@@ -96,9 +96,9 @@ class GameMenu:
             return
         
         try:
-            self.network_client = NetworkClient(host,port)
-            self.network_client.initialized = True
-            self.network_client.start_listener()
+            self.game_client = GameClient(host,port)
+            self.game_client.initialized = True
+            self.game_client.start_listener()
             self.state = AppState.LOBBY
             self.connection_in_progress = True
             self.menu.disable()
@@ -108,8 +108,8 @@ class GameMenu:
     
     # Closes the network connection if active, shuts down Pygame, and exits the program.
     def quit_game(self):
-        if self.network_client:
-            self.network_client.close()
+        if self.game_client:
+            self.game_client.close()
         pygame.quit()
         sys.exit()
 
@@ -129,7 +129,7 @@ class GameMenu:
             
             elif self.state == AppState.LOBBY:
                 self.menu.disable()
-                lobby = Lobby(self.network_client)
+                lobby = Lobby(self.game_client)
                 result, player_id = lobby.run()
                 
                 # result is either "game" or "menu"
@@ -141,7 +141,7 @@ class GameMenu:
                     self.menu.enable()
                     
             elif self.state == AppState.GAME:
-                game = CaptureTheFlagGame(self.network_client, player_id)
+                game = CaptureTheFlagGame(self.game_client, player_id)
                 game.run()
                 
             elif self.state == AppState.ERROR:

@@ -16,13 +16,13 @@ class Lobby:
 
     # Sets up the Pygame lobby UI, initializes player state tracking, and builds a menu interface with:
     # Player info frames: "Ready", "Start Game", and "Leave Lobby" buttons
-    def __init__(self,network_client,screen_width = 750, screen_height = 750):
+    def __init__(self, game_client,screen_width = 750, screen_height = 750):
         pygame.init()
         
         self.last_update_time = 0
         self.update_interval = 0.1
         
-        self.network_client = network_client
+        self.game_client = game_client
         self.lobby_state = LobbyState.WAITING
         self.surface = pygame.display.set_mode((screen_width, screen_height))
         
@@ -97,7 +97,7 @@ class Lobby:
     # Syncs the displayed lobby UI with the latest state from the server:
     # Updates player names, ready states, colors, and button visibility (like Start Game)
     def update_ui(self):
-        lobby_state = self.network_client.lobby_state
+        lobby_state = self.game_client.lobby_state
         current_player_id = lobby_state["player_id"]
         
         for i in range(4):
@@ -132,17 +132,17 @@ class Lobby:
     def toggle_ready(self):
         print(f"Ready button clicked.")
         self.is_ready = not self.is_ready
-        self.network_client.send_toggle_ready()
+        self.game_client.send_toggle_ready()
 
     # Sends a request to the server to start the game.
     # Only visible if the client is the host and conditions are met.
     def start_game(self):
-        self.network_client.send_start_request()
+        self.game_client.send_start_request()
     
     # Changes the local lobby state to EXIT and notifies the server of disconnection.
     def leave_lobby(self):
         self.lobby_state = LobbyState.EXIT
-        self.network_client.send_disconnect()
+        self.game_client.send_disconnect()
         
     # Returns what the next screen should be ("game" or "menu"), based on the current lobby state.
     def get_next_state(self):
@@ -165,9 +165,7 @@ class Lobby:
             events = pygame.event.get()
             
             self.update_ui()
-            # for debug
-            # print(self.network_client.lobby_state)
-            if self.network_client.game_start:
+            if self.game_client.game_start:
                 self.lobby_state = LobbyState.START_GAME
             
             self.menu.update(events)
@@ -175,5 +173,5 @@ class Lobby:
             pygame.display.flip()
             clock.tick(30)
         
-        return self.get_next_state(), self.network_client.lobby_state["player_id"]
+        return self.get_next_state(), self.game_client.lobby_state["player_id"]
   

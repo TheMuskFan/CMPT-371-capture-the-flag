@@ -3,7 +3,7 @@ import socket
 import threading
 import json
 
-class NetworkClient:
+class GameClient:
     # Initializes the client, connects to the server, sets up state and message handling, 
     # and prepares for communication.
     def __init__(self, host='127.0.0.1', port=12345):
