@@ -6,6 +6,11 @@ from lobby import Lobby
 from enum import Enum, auto
 from capture_the_flag_game import CaptureTheFlagGame
 
+# Represents the current screen/state of the app:
+# MENU: Main menu screen
+# LOBBY: Waiting in the lobby
+# GAME: Active gameplay
+# ERROR: Error occurred, returns to menu
 class AppState(Enum):
     MENU = auto()
     LOBBY = auto()
@@ -13,6 +18,8 @@ class AppState(Enum):
     ERROR = auto()
 
 class GameMenu:
+    # Sets up the Pygame window, initializes the menu, and creates the main menu UI.
+    # Also initializes app state and network client variables.
     def __init__(self,screen_width = 750,screen_height=750):
         pygame.init()
         
@@ -26,6 +33,10 @@ class GameMenu:
         
         self.create_main_menu()
     
+    # Builds the main menu with:
+    # - Server IP and Port input fields
+    # - "Connect" and "Quit" buttons
+    # - Optional error label if connection failed
     def create_main_menu(self):
         
         self.menu = pygame_menu.Menu(
@@ -64,7 +75,12 @@ class GameMenu:
                 font_size=18
             )
             error_label.set_max_width(700)
-            
+    
+    # Reads IP and port from input fields, then:
+    # - Attempts to connect to the server
+    # - Starts the network listener
+    # - Changes app state to LOBBY if successful
+    # - Shows error message on failure and refreshes menu
     def connect_to_server(self):
         if self.connection_in_progress:
             return
@@ -89,13 +105,19 @@ class GameMenu:
         except Exception as e:
             self.error_message = f"Connection failed: {str(e)}"
             self.create_main_menu()
-            
+    
+    # Closes the network connection if active, shuts down Pygame, and exits the program.
     def quit_game(self):
         if self.network_client:
             self.network_client.close()
         pygame.quit()
         sys.exit()
 
+    # Central loop that switches between app states:
+    # - MENU: Displays the main menu
+    # - LOBBY: Runs the Lobby screen and checks the next transition
+    # - GAME: Starts the game session
+    # - ERROR: Triggers error handling
     def run(self):
         while True:
             events = pygame.event.get()
@@ -127,7 +149,8 @@ class GameMenu:
                 self.handle_error_state()
                 
             pygame.display.flip()
-            
+    
+    # Resets the app state to the menu and re-initializes the main menu after an error.
     def handle_error_state(self):
         self.state = AppState.MENU
         self.create_main_menu()
