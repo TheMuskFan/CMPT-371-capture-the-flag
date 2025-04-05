@@ -3,6 +3,8 @@ import random
 from player import Player
 
 class GameState:
+    # Initializes the game state with a grid, player positions, team bases, 
+    # and a randomly placed flag. Sets up player objects for each connected ID.
     def __init__(self, grid_size=15, connected_players_ids = None):
         self.grid_size = grid_size
         self.players = {}
@@ -33,6 +35,8 @@ class GameState:
         self.state_lock = threading.Lock()
         self.flag_pos = self.generate_random_flag_position()
     
+    # Randomly selects a grid cell for the flag that isn’t a player’s base 
+    # or currently occupied by a player.
     def generate_random_flag_position(self):
         while True:
             x = random.randint(0, self.grid_size - 1)
@@ -44,6 +48,8 @@ class GameState:
                 not self.is_cell_occupied(pos)):
                 return pos
 
+    # Checks if a grid cell is occupied by any player, 
+    # optionally excluding a specific player from the check (e.g., when moving that player).
     def is_cell_occupied(self, pos, exclude_player_id=None):
         for pid, player in self.players.items():
             if exclude_player_id is not None and pid == exclude_player_id:
@@ -52,6 +58,12 @@ class GameState:
                 return True
         return False
 
+    # Handles a player's move:
+    # - Validates move within bounds and checks for collisions or locked cells.
+    # - If carrying a flag, the flag moves with the player.
+    # - Allows stealing the flag from adjacent players.
+    # - Lets players capture the flag by stepping on it.
+    # Returns the flag to base to score a point, and resets the flag.
     def move_player(self, player_id, dx, dy):
         with self.state_lock:
             player = self.players.get(player_id)
@@ -96,6 +108,8 @@ class GameState:
                     self.flag_pos = self.generate_random_flag_position()  # Flag respawns randomly
                     self.locked_cells.clear()
 
+    # Returns a dictionary representing the current game state: 
+    # player positions, flag location, and locked cells. Used for broadcasting to clients.
     def get_state(self):
         with self.state_lock:
             return {
