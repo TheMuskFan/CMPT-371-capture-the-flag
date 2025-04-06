@@ -237,7 +237,21 @@ class GameServer:
         while True:
             self.broadcast_game_state()
             clock.tick(30)  # 30 updates per second
-
+    
+    # Sends a shutdown message to all players notifying them the server is down.
+    def broadcast_server_shutdown(self):
+        shutdown_msg = json.dumps({
+            "type": "server_down",
+            "message": "Server is shutting down. Disconnecting..."
+        }) + "\n"
+        shutdown_msg = shutdown_msg.encode()
+        for i, sock in enumerate(self.lobby_state["sockets"]):
+            if sock:
+                try:
+                    sock.sendall(shutdown_msg)
+                except Exception as e:
+                    print(f"Failed to send shutdown message to player {i + 1}: {e}")
+                    
     # Starts the server socket, listens for clients, and spawns threads for each connection.
     def start(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -258,5 +272,6 @@ class GameServer:
                 client_thread.start()
         except KeyboardInterrupt:
             print("Server shutting down.")
+            self.broadcast_server_shutdown()
         finally:
             server_socket.close()

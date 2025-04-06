@@ -1,5 +1,6 @@
-import pygame
 import sys
+import pygame
+import pygame_gui
 from game_client import GameClient
 from game_renderer import GameRenderer
 
@@ -60,12 +61,57 @@ class CaptureTheFlagGame:
 
         while self.running:
             self.process_events()
+
+            # Check if a server shutdown has been signaled.
+            if self.game_client.server_down:
+                self.show_server_down_alert()
+                break
+            
             state = self.game_client.get_state()
             players = state.get("players", [])
             flag_pos = state.get("flag", (self.renderer.grid_size // 2, self.renderer.grid_size // 2))
             self.renderer.render(players, flag_pos)
 
         self.cleanup()
+
+    # Show server down GUI
+    def show_server_down_alert(self):
+        # Get the current screen size from the renderer.
+        screen_size = self.renderer.screen.get_size()
+        alert_width, alert_height = 400, 200
+        # Calculate the centered position.
+        alert_rect = pygame.Rect(
+            (screen_size[0] - alert_width) // 2,
+            (screen_size[1] - alert_height) // 2,
+            alert_width,
+            alert_height
+        )
+        
+        # Create a UIManager using the size of the renderer's display.
+        manager = pygame_gui.UIManager(screen_size)
+        # Create the message window with the centered rectangle.
+        alert_window = pygame_gui.windows.UIMessageWindow(
+            rect=alert_rect,
+            html_message="Server is shutting down. The game will now exit.",
+            manager=manager
+        )
+        clock = pygame.time.Clock()
+        alert_active = True
+
+        while alert_active:
+            time_delta = clock.tick(30) / 1000.0
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    alert_active = False
+                manager.process_events(event)
+            manager.update(time_delta)
+            self.renderer.screen.fill((0, 0, 0))  # Clear the screen
+            manager.draw_ui(self.renderer.screen)
+            pygame.display.update()
+
+            # Exit the loop once the alert window is closed.
+            if not alert_window.alive():
+                alert_active = False
 
     # Gracefully shuts down the game:
     # - Quits Pygame

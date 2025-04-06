@@ -1,7 +1,10 @@
+import sys
 import queue
 import socket
 import threading
 import json
+import tkinter as tk
+from tkinter import messagebox
 
 class GameClient:
     # Initializes the client, connects to the server, sets up state and message handling, 
@@ -15,6 +18,7 @@ class GameClient:
         self.message_queue = queue.Queue()
         self.listening = False
         self.game_start = False
+        self.server_down = False
         
         self.state = {
             "players": [],
@@ -34,7 +38,8 @@ class GameClient:
             'update': self.handle_update,
             'lobby_update': self.handle_lobby_update,
             'lobby_init': self.handle_lobby_init,
-            'game_start': self.handle_game_start
+            'game_start': self.handle_game_start,
+            'server_down': self.handle_server_down 
         }
         
     # Sets the game_start flag and queues the message for further processing.
@@ -112,6 +117,11 @@ class GameClient:
                 'ready_states': message.get('ready_states', self.lobby_state['ready_states']),
                 'can_start': message.get('can_start', self.lobby_state['can_start'])
             })
+
+    # Handles a server shutdown message and disconnects the client.
+    def handle_server_down(self, message):
+        print("Server is shutting down. Disconnecting gracefully.")
+        self.server_down = True
 
     # Sends a "ready/unready" toggle for the current player to the server.
     def send_toggle_ready(self):
